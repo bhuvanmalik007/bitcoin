@@ -15,8 +15,6 @@ end
     {walletBalance, _} = Float.parse(Enum.at(parameters,3))
     IO.puts "Building your custom blockchain ecosystem"
 
-    # spawn(Bitcoin, :start, [numUsers, numMiners, numTransaction, walletBalance])
-
     Bitcoin.start(numUsers, numMiners, numTransaction, walletBalance)
   end
 end

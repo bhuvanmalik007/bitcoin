@@ -23,7 +23,7 @@ defmodule Bitcoin do
     send transactionAutomatorPID, {:startTransaction}
 
     receive do
-      {:allDone} -> {:allDone}
+      {:allTransactionsDone} -> {:allTransactionsDone}
     end
 
   end
@@ -43,8 +43,7 @@ defmodule Bitcoin do
             GenServer.call(sendersPID, {:initiateTransaction, [sendersPID, receiversPK]})
             transactionAutomator(users, noTransactions, counter + 1, caller)
           true ->
-            IO.puts("All done.")
-            # finalBalances = []
+            IO.puts("All transactions successfully completed.")
             finalBalances = Enum.reduce(1..users, %{}, fn i, acc ->
               walletPID = WalletGenServer.pidRetriever(i)
               wallet = GenServer.call(walletPID, {:getWallet})
@@ -52,7 +51,7 @@ defmodule Bitcoin do
               Map.put(acc, :"wallet no #{inspect(i)}", balance)
             end)
             IO.puts("FINAL BALANCES: #{inspect(finalBalances)}")
-            send caller, {:allDone}
+            send caller, {:allTransactionsDone}
         end
       {:transactionEnded} ->
           send self(), {:startTransaction}
@@ -68,11 +67,9 @@ defmodule Bitcoin do
       map_set = MapSet.put(map_set,x)
       pairs(num,participants,map_set)
     end
-   end
+  end
 
   def verificationAccumulator(receiveCounter, counterLimit, blockChainPID, senderPID, minersList, decisionsList) do
-    # IO.puts("inside verificationAccumulator")
-    # Adding result of this process to overall result
     receive do
       {:ok, senderPID, minersList} ->
         for i<-1..Registry.count(:node_store) do
@@ -81,15 +78,12 @@ defmodule Bitcoin do
         end
         Bitcoin.verificationAccumulator(0, counterLimit, blockChainPID, senderPID, minersList, [])
       {:ok, receiveDecision} ->
-        # IO.puts("***********************************verification received")
         cond do
           receiveCounter + 1 < counterLimit  ->
             decisionsList = decisionsList ++ [receiveDecision]
             Bitcoin.verificationAccumulator(receiveCounter + 1, counterLimit,  blockChainPID, senderPID, minersList, decisionsList)
-            # else
           receiveCounter + 1 == counterLimit  ->
            fraud =  Enum.any?(decisionsList, fn x -> x == false end)
-          #  IO.puts("***********************************fraud: #{inspect(fraud)}")
            blockChain = GenServer.call(blockChainPID, {:getBlockChain})
            if(fraud) do
               for i <- 0..(length(minersList) - 1) do

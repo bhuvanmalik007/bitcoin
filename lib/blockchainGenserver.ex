@@ -23,7 +23,6 @@ defmodule BlockChainGenServer do
 
   def handle_cast({:addBlock, newBlock}, state) do
     state = state ++ [newBlock]
-    # IO.puts("_______________state: #{inspect(state)}")
     {:noreply, state}
   end
 

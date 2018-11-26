@@ -14,15 +14,6 @@ defmodule WalletGenServer do
 
   def init([holderIndex, privateKey, publicKey, btc, minersList, transactionAutomatorPID]) do
     state = %{"holderIndex" => holderIndex, "privateKey" => privateKey, "publicKey" => publicKey, "btc" => btc, "minersList" => minersList, "transactionAutomatorPID" => transactionAutomatorPID}
-    # IO.puts("state: #{inspect(state)}")
-    # IO.puts("sdfsdfsdfsdf")
-    # IO.puts("tuple: #{inspect(RsaEx.sign("message", privateKey, :sha256))}")
-    # {:ok, signature} = RsaEx.sign("message", privateKey, :sha256)
-
-    # IO.puts("signature: #{inspect(signature)}")
-    # {:ok, valid} = RsaEx.verify("message", signature, publicKey)
-    # IO.puts("verified?: #{inspect(valid)}")
-
     {:ok, state}
   end
 
@@ -51,9 +42,7 @@ defmodule WalletGenServer do
     addedBlock = Enum.at(blockChain, length(blockChain) - 1)
     signedMessage = Map.get(addedBlock, :signedMessage)
     sendersPublicKey = Map.get(addedBlock, :sendersPublicKey)
-    # IO.puts("***********************************sendersPublicKey: #{inspect(sendersPublicKey)}")
     {:ok, valid} = RsaEx.verify("message", signedMessage, sendersPublicKey)
-      # IO.puts("***********************************valid: #{inspect(valid)}")
     send verificationAccumulatorPID, {:ok, valid}
     {:reply, appState, appState}
   end
@@ -67,10 +56,8 @@ defmodule WalletGenServer do
   end
 
   def handle_cast({:checkTransactionReceiver, receivedBTC, receiversPK}, state) do
-    # IO.puts("***********************************inside #{inspect(receiversPK)}")
     cond do
       Map.get(state, "publicKey") == receiversPK ->
-        # IO.puts("matched")
         currentBTC = Map.get(state, "btc")
         newBTC = currentBTC + receivedBTC
         state = Map.replace!(state, "btc", newBTC)
