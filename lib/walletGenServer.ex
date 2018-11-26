@@ -18,7 +18,6 @@ defmodule WalletGenServer do
   end
 
   def handle_call({:initiateTransaction, [selfPID, sendToPK]}, _from, state) do
-    IO.puts("*******")
     transactionData = %{
       "btc" => Map.get(state, "btc")/2,
       "receiversPK" => sendToPK,
@@ -26,6 +25,7 @@ defmodule WalletGenServer do
     }
     {:ok, signature} = RsaEx.sign("message", Map.get(state,"privateKey"), :sha256)
     minersList = Map.get(state,"minersList")
+    IO.puts("Mining.. 🛠")
     for i <- 0..(length(minersList) - 1) do
       send Enum.at(minersList, i), {:ok, [transactionData, signature, selfPID, minersList]}
     end
@@ -37,7 +37,6 @@ defmodule WalletGenServer do
   end
 
   def handle_call({:verifyBlockChain, [verificationAccumulatorPID, blockChainPID]}, _from, appState) do
-
     blockChain = GenServer.call(blockChainPID, {:getBlockChain})
     addedBlock = Enum.at(blockChain, length(blockChain) - 1)
     signedMessage = Map.get(addedBlock, :signedMessage)
@@ -51,7 +50,7 @@ defmodule WalletGenServer do
     currentBTC = Map.get(state, "btc")
     newBTC = currentBTC - spentBTC
     state = Map.replace!(state, "btc", newBTC)
-    IO.puts("sender's wallet: #{inspect(newBTC)} btc")
+    IO.puts("sender's wallet 💰: #{inspect(newBTC)} btc")
     {:noreply, state}
   end
 
@@ -61,11 +60,11 @@ defmodule WalletGenServer do
         currentBTC = Map.get(state, "btc")
         newBTC = currentBTC + receivedBTC
         state = Map.replace!(state, "btc", newBTC)
-        IO.puts("receiver's wallet: #{inspect(newBTC)} btc")
+        IO.puts("receiver's wallet 💰: #{inspect(newBTC)} btc")
         send Map.get(state, "transactionAutomatorPID"), {:transactionEnded}
         {:noreply, state}
       true -> {:noreply, state}
-      end
+    end
   end
 
   def handle_info(_msg, state) do

@@ -13,8 +13,7 @@ end
     numMiners = String.to_integer(Enum.at(parameters,1))
     numTransaction = String.to_integer(Enum.at(parameters,2))
     {walletBalance, _} = Float.parse(Enum.at(parameters,3))
-    IO.puts "Building your custom blockchain ecosystem"
-
+    IO.puts "\nBuilding your custom blockchain ecosystem "
     Bitcoin.start(numUsers, numMiners, numTransaction, walletBalance)
   end
 end

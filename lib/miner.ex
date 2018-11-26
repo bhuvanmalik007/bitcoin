@@ -25,6 +25,7 @@ defmodule Miner do
       length(blockChain) - 1 == blockChainEndIndex ->
             msgt_hash = Miner.hash(transactionData, hash)
             if(String.slice(msgt_hash, 0, 4) === String.duplicate("0", 4)) do
+                IO.puts "Hash found: #{inspect(msgt_hash)}"
                 IO.puts "Transaction successful"
                 newBlock = %{
                   transactionData: transactionData,
@@ -48,8 +49,6 @@ defmodule Miner do
   end
 
   def hash(transactionData, prevHash) do
-    # IO.puts("transaction data: #{inspect(transactionData)}")
-    # IO.puts("prevHash: #{inspect(prevHash)}")
     btc = Float.to_string(Map.get(transactionData, "btc"))
     receiversPK = Map.get(transactionData, "receiversPK")
     msgt = btc <> receiversPK <> prevHash <> randomizer(9)
