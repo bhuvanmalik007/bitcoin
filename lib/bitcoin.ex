@@ -1,4 +1,6 @@
 defmodule Bitcoin do
+
+  # Blockchain, wallets and miners are initialized from here and call to transaction automator is made
   def start(users, noMiners, noTransactions, initialBalance) do
     {:ok, blockChainPID} = BlockChainGenServer.start_link()
     Registry.start_link(keys: :unique, name: :node_store)
@@ -25,12 +27,13 @@ defmodule Bitcoin do
 
   end
 
+  # Chooses random pairs of users and initiates transaction between them. Also captures result when all transaction have been completed.
   def transactionAutomator(users, noTransactions, counter, caller, blockChainPID) do
     receive do
       {:startTransaction} ->
         cond do
           (counter + 1) <= noTransactions  ->
-            pair = Enum.to_list(pairs(2, users, MapSet.new()))
+            pair = Enum.to_list(Helpers.pairs(2, users, MapSet.new()))
             IO.puts("\nTransaction initiated between: 👜#{inspect(Enum.at(pair, 0))} ------> 👜#{inspect(Enum.at(pair, 1))}")
             sendersPID = WalletGenServer.pidRetriever(Enum.at(pair, 0))
             receiversPID = WalletGenServer.pidRetriever(Enum.at(pair, 1))
@@ -55,16 +58,7 @@ defmodule Bitcoin do
       end
   end
 
-  def pairs(num, participants, map_set) do
-    if num == MapSet.size(map_set) do
-      map_set
-    else
-      x = Enum.random(Enum.to_list(1..participants))
-      map_set = MapSet.put(map_set,x)
-      pairs(num,participants,map_set)
-    end
-  end
-
+  # Collects approval from all user in the ecosystem for a new block added to the blockchain and informs everyone if a fraudulent block was added
   def verificationAccumulator(receiveCounter, counterLimit, blockChainPID, senderPID, minersList, decisionsList) do
     receive do
       {:ok, senderPID, minersList} ->

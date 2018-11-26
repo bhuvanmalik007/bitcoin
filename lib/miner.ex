@@ -1,4 +1,6 @@
 defmodule Miner do
+
+  # Elixir actor to capture all incoming transactions to mine
   def miningNode(blockChainPID, verificationAccumulatorPID, blockChainEndIndex) do
     receive do
       {:ok, [newTransactionData, signedMessage, senderPID, minersList]} ->
@@ -16,6 +18,7 @@ defmodule Miner do
     end
   end
 
+  # Recursively calls itself and calls the hashing function untill a hash with the specific number of 0's is found, after which it creates and adds a new block to the blockchain
   def mining(blockChainPID, transactionData, signature, hash, blockChainEndIndex, senderPID, verificationAccumulatorPID, minersList, selfPID) do
     blockChain = GenServer.call(blockChainPID, {:getBlockChain})
 
@@ -23,7 +26,7 @@ defmodule Miner do
       length(blockChain) - 1 > blockChainEndIndex  ->
         send selfPID, {:incrementPointer}
       length(blockChain) - 1 == blockChainEndIndex ->
-            msgt_hash = Miner.hash(transactionData, hash)
+            msgt_hash = Helpers.hash(transactionData, hash)
             if(String.slice(msgt_hash, 0, 4) === String.duplicate("0", 4)) do
                 IO.puts "Hash found: #{inspect(msgt_hash)}"
                 IO.puts "Transaction successful"
@@ -43,16 +46,4 @@ defmodule Miner do
             end
     end
   end
-
-  def randomizer(l) do
-    :crypto.strong_rand_bytes(l) |> Base.url_encode64 |> binary_part(0, l) |> String.downcase
-  end
-
-  def hash(transactionData, prevHash) do
-    btc = Float.to_string(Map.get(transactionData, "btc"))
-    receiversPK = Map.get(transactionData, "receiversPK")
-    msgt = btc <> receiversPK <> prevHash <> randomizer(9)
-    :crypto.hash(:sha256, msgt) |> Base.encode16 |> String.downcase
-  end
-
 end

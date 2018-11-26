@@ -12,11 +12,13 @@ defmodule WalletGenServer do
     end
   end
 
+  # State of the wallet is initialized here
   def init([holderIndex, privateKey, publicKey, btc, minersList, transactionAutomatorPID]) do
     state = %{"holderIndex" => holderIndex, "privateKey" => privateKey, "publicKey" => publicKey, "btc" => btc, "minersList" => minersList, "transactionAutomatorPID" => transactionAutomatorPID}
     {:ok, state}
   end
 
+  # New transaction is initiated, a signed message and transaction data are broadcasted for all miners to pick up and start mining
   def handle_call({:initiateTransaction, [selfPID, sendToPK]}, _from, state) do
     transactionData = %{
       "btc" => Map.get(state, "btc")/2,
@@ -32,10 +34,12 @@ defmodule WalletGenServer do
     {:reply, state, state}
   end
 
+  # Returns state of the waller GenServer
   def handle_call({:getWallet}, _from, appState) do
     {:reply, appState, appState}
   end
 
+  # Verification of the latest block in the blockchain is done.
   def handle_call({:verifyBlockChain, [verificationAccumulatorPID, blockChainPID]}, _from, appState) do
     blockChain = GenServer.call(blockChainPID, {:getBlockChain})
     addedBlock = Enum.at(blockChain, length(blockChain) - 1)
