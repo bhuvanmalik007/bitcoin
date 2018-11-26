@@ -1,12 +1,12 @@
 defmodule Helpers do
-  def randomizer(l) do
+  def nonceGenerator(l) do
     :crypto.strong_rand_bytes(l) |> Base.url_encode64 |> binary_part(0, l) |> String.downcase
   end
 
   def hash(transactionData, prevHash) do
     btc = Float.to_string(Map.get(transactionData, "btc"))
     receiversPK = Map.get(transactionData, "receiversPK")
-    msgt = btc <> receiversPK <> prevHash <> randomizer(9)
+    msgt = btc <> receiversPK <> prevHash <> nonceGenerator(9)
     :crypto.hash(:sha256, msgt) |> Base.encode16 |> String.downcase
   end
 

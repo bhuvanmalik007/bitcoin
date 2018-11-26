@@ -21,7 +21,6 @@ defmodule Miner do
   # Recursively calls itself and calls the hashing function untill a hash with the specific number of 0's is found, after which it creates and adds a new block to the blockchain
   def mining(blockChainPID, transactionData, signature, hash, blockChainEndIndex, senderPID, verificationAccumulatorPID, minersList, selfPID) do
     blockChain = GenServer.call(blockChainPID, {:getBlockChain})
-
     cond do
       length(blockChain) - 1 > blockChainEndIndex  ->
         send selfPID, {:incrementPointer}

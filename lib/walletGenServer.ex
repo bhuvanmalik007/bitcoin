@@ -5,10 +5,11 @@ defmodule WalletGenServer do
     GenServer.start_link(__MODULE__, [holderIndex, privateKey, publicKey, btc, minersList, transactionAutomatorPID], name: {:via, Registry, {:node_store, holderIndex}})
   end
 
+  # Retrieves pid from the register containing wallet pids
   def pidRetriever(holderIndex) do
     case Registry.lookup(:node_store, holderIndex) do
-    [{pid, _}] -> pid
-    [] -> nil
+      [{pid, _}] -> pid
+      [] -> nil
     end
   end
 
@@ -34,7 +35,7 @@ defmodule WalletGenServer do
     {:reply, state, state}
   end
 
-  # Returns state of the waller GenServer
+  # Returns state of the wallet GenServer
   def handle_call({:getWallet}, _from, appState) do
     {:reply, appState, appState}
   end
